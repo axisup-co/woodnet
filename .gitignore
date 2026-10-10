@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+!.env.example
+server/uploads/
+uploads/
+*.log
+.DS_Store
+dist/
+build/
+.vite/
+.cache/
