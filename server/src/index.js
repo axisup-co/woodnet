@@ -36,5 +36,5 @@ app.use(errorHandler);
 
 const server = http.createServer(app);
 app.set('io', attachSockets(server));
-server.listen(config.port, () => log.info(`woodnet server on :${config.port}`));
+server.listen(config.port, '0.0.0.0', () => log.info(`woodnet server on :${config.port}`));
 process.on('SIGTERM', () => server.close(() => process.exit(0)));

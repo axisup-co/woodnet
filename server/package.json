@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "migrate": "psql $DATABASE_URL -f src/db/schema.sql && psql $DATABASE_URL -f src/db/migrations/002_admin.sql",
-    "seed:admin": "node src/db/seed_admin.js"
+    "migrate": "node src/db/migrate.js",
+    "seed:admin": "node src/db/seed_admin.js",
+    "render:start": "npm run migrate && npm start"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

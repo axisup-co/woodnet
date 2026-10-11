@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: woodnet
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm run render:start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: LOG_LEVEL
+        value: info
+      - key: JWT_EXPIRES
+        value: 7d
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: UPLOAD_DIR
+        value: /tmp/uploads
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_EMAIL
+        value: mo0_adam@axis.co
+      - key: ADMIN_PASSWORD
+        sync: false
