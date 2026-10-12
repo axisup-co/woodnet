@@ -32,6 +32,10 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
+// SPA fallback: كل مسار غير API/static يخدم index.html
+app.get(/^(?!\/api|\/uploads|\/health).*/, (_req, res) => {
+  res.sendFile(path.resolve('public/index.html'));
+});
 app.use(errorHandler);
 
 const server = http.createServer(app);
