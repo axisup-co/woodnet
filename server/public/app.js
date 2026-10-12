@@ -384,3 +384,13 @@ document.addEventListener('click', (e) => {
     route();
   }
 });
+
+/* race-fix: route after boot completes */
+(async function awaitBootThenRoute() {
+  for (let i = 0; i < 80; i++) {
+    await new Promise(r => setTimeout(r, 100));
+    if (typeof me !== 'undefined' && me) { route(); return; }
+    const authEl = document.getElementById('page-auth');
+    if (authEl && !authEl.classList.contains('hidden')) return;
+  }
+})();
