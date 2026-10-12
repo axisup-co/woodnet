@@ -312,3 +312,75 @@ pages.admin = async function () {
   el.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => loadTab(b.dataset.t)));
   loadTab('stats');
 };
+
+/* ===== Profile + Pathname Router ===== */
+const _origShow = show;
+show = function(name) {
+  ['feed','friends','messages','notifications','admin','profile'].forEach(p => {
+    const el = $('#page-' + p); if (el) el.classList.add('hidden');
+  });
+  if (name) { const el = $('#page-' + name); if (el) el.classList.remove('hidden'); }
+  $$('nav button[data-page]').forEach(b => b.classList.toggle('on', b.dataset.page === name));
+  if (name && pages[name] && name !== 'profile') pages[name]();
+};
+
+pages.profile = async function(username) {
+  const el = $('#page-profile');
+  el.innerHTML = '<div class="center muted">...</div>';
+  try {
+    const data = await api('/api/users/' + encodeURIComponent(username));
+    const u = data.user, posts = data.posts || [], stats = data.stats || {};
+    el.innerHTML = `
+      <div class="card">
+        <div class="row" style="gap:12px;flex-wrap:wrap">
+          ${u.avatar_url ? `<img src="${esc(u.avatar_url)}" class="avatar" style="width:80px;height:80px">` : '<span class="avatar" style="width:80px;height:80px;display:inline-block"></span>'}
+          <div style="flex:1;min-width:180px">
+            <h2 style="margin:0">${esc(u.full_name || u.username)}</h2>
+            <div class="muted small">@${esc(u.username)}</div>
+            ${u.bio ? `<p>${esc(u.bio)}</p>` : ''}
+            <div class="muted small">${stats.friend_count || 0} صديق · ${stats.post_count || 0} منشور</div>
+          </div>
+          ${me && me.username === u.username ? '' : `
+            <button class="btn-p" id="pf-add">إضافة صديق</button>
+            <button class="btn" id="pf-chat">رسالة</button>`}
+        </div>
+      </div>
+      <div>${posts.map(renderPost).join('') || '<div class="card muted center">لا منشورات</div>'}</div>`;
+    posts.forEach(wirePost);
+    const addBtn = $('#pf-add'), chatBtn = $('#pf-chat');
+    if (addBtn) addBtn.addEventListener('click', async () => {
+      try { await api('/api/friends/request', { method: 'POST', body: { addresseeId: u.id } }); alert('تم إرسال الطلب'); }
+      catch(e) { alert(e.message); }
+    });
+    if (chatBtn) chatBtn.addEventListener('click', async () => {
+      const { conversationId } = await api('/api/messages/conversation', { method: 'POST', body: { peerId: u.id } });
+      history.pushState({}, '', '/messages/' + conversationId);
+      route();
+    });
+  } catch(e) { el.innerHTML = `<div class="card err">${esc(e.message)}</div>`; }
+};
+
+function route() {
+  const p = location.pathname;
+  if (p === '/' || p === '') show('feed');
+  else if (p === '/friends') show('friends');
+  else if (p === '/messages') show('messages');
+  else if (p.startsWith('/messages/')) { show('messages'); if (typeof openConv === 'function') setTimeout(() => openConv(p.split('/').pop()), 50); }
+  else if (p === '/notifications') show('notifications');
+  else if (p === '/admin') show('admin');
+  else if (p.startsWith('/u/')) { show('profile'); pages.profile(decodeURIComponent(p.slice(3))); }
+  else show('feed');
+}
+
+window.addEventListener('DOMContentLoaded', () => setTimeout(route, 300));
+window.addEventListener('popstate', route);
+
+document.addEventListener('click', (e) => {
+  const a = e.target.closest && e.target.closest('[data-user]');
+  if (a) {
+    e.preventDefault();
+    const u = a.dataset.user;
+    history.pushState({}, '', '/u/' + u);
+    route();
+  }
+});
