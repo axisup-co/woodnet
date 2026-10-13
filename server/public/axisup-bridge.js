@@ -1,19 +1,30 @@
 (async () => {
   const token = localStorage.getItem('token');
-  if (!token) { location.replace('/login.html'); return; }
+
+  // ===== لا يوجد token: اعرض شاشة الدخول =====
+  if (!token) return showLogin();
+
   const H = { Authorization: 'Bearer ' + token };
   const JH = { ...H, 'Content-Type': 'application/json' };
 
+  // ===== تحقق من التوكن =====
+  let me;
   try {
     const r = await fetch('/api/auth/me', { headers: H });
     if (!r.ok) throw 0;
-    const { user } = await r.json();
-    CURRENT_USER.id = user.id;
-    CURRENT_USER.username = user.username;
-    CURRENT_USER.name = user.full_name || user.username;
-    CURRENT_USER.headline = '@' + user.username + ' · ' + (user.role || 'user');
-    CURRENT_USER.avatar = user.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username) + '&background=0A1A24&color=00B074&bold=true&size=200';
-  } catch (e) { localStorage.removeItem('token'); location.replace('/login.html'); return; }
+    const d = await r.json();
+    me = d.user;
+  } catch {
+    localStorage.removeItem('token');
+    return showLogin();
+  }
+
+  // ===== حمّل البيانات =====
+  CURRENT_USER.id = me.id;
+  CURRENT_USER.username = me.username;
+  CURRENT_USER.name = me.full_name || me.username;
+  CURRENT_USER.headline = '@' + me.username + ' · ' + (me.role || 'user');
+  CURRENT_USER.avatar = me.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(me.username) + '&background=0A1A24&color=00B074&bold=true&size=200';
 
   try {
     const r = await fetch('/api/posts/feed?limit=30', { headers: H });
@@ -84,7 +95,7 @@
       }
       renderApp();
       toast(p.isLiked ? 'أعجبك 👍' : 'أُلغي الإعجاب');
-    } catch (e) { toast('خطأ'); }
+    } catch { toast('خطأ'); }
   };
 
   window.createPost = async function () {
@@ -105,7 +116,7 @@
       ta.value = '';
       renderApp();
       toast('تم النشر 🚀');
-    } catch (e) { toast('خطأ'); }
+    } catch { toast('خطأ'); }
   };
 
   window.addCommentToPost = async function (postId) {
@@ -120,7 +131,7 @@
       inp.value = '';
       renderApp();
       toast('تم التعليق 💬');
-    } catch (e) { toast('خطأ'); }
+    } catch { toast('خطأ'); }
   };
 
   window.openChatRoom = async function (chatId) {
@@ -158,7 +169,7 @@
       inp.value = '';
       playTone('msg');
       renderApp();
-    } catch (e) { toast('خطأ'); }
+    } catch { toast('خطأ'); }
   };
 
   function timeAgo(iso) {
@@ -180,8 +191,81 @@
       b.title = 'خروج';
       b.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i>';
       b.className = 'w-10 h-10 rounded-xl bg-ink/5 hover:bg-coral hover:text-white flex items-center justify-center text-ink/70 transition';
-      b.onclick = () => { localStorage.removeItem('token'); location.replace('/login.html'); };
+      b.onclick = () => { localStorage.removeItem('token'); location.reload(); };
       profBtn.parentNode.insertBefore(b, profBtn);
     }
   }
 })();
+
+// ===== شاشة الدخول المدمجة =====
+function showLogin() {
+  document.documentElement.innerHTML = `
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Axis Up · دخول</title>
+<script src="https://cdn.tailwindcss.com"><\/script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;font-family:Cairo,system-ui,sans-serif;background:linear-gradient(135deg,#0A1A24 0%,#0F2634 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;color:#E6EDF5}
+  .card{background:#132836;border:1px solid #263341;border-radius:20px;padding:32px 24px;width:100%;max-width:380px;box-shadow:0 20px 60px -20px rgba(0,176,116,.4)}
+  .brand{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px}
+  .brand img{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:14px;padding:6px}
+  .brand h1{font-size:24px;font-weight:900;margin:0}
+  .brand span{color:#00B074}
+  .sub{text-align:center;color:#8b98a8;font-size:13px;margin-bottom:24px}
+  input{width:100%;padding:12px 14px;background:#0F2634;border:1px solid #263341;border-radius:12px;color:#E6EDF5;font-size:14px;margin:6px 0;outline:none;box-sizing:border-box;font-family:inherit}
+  input:focus{border-color:#00B074;box-shadow:0 0 0 3px rgba(0,176,116,.15)}
+  button{width:100%;padding:12px;background:#00B074;color:#fff;border:none;border-radius:12px;font-weight:800;font-size:15px;margin-top:12px;cursor:pointer;font-family:inherit;transition:.15s}
+  button:hover{background:#009663}
+  button:disabled{opacity:.5;cursor:wait}
+  .err{background:#4a1f24;color:#ffb4b4;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px;display:none}
+  .err.show{display:block}
+  .hint{text-align:center;color:#8b98a8;font-size:11px;margin-top:20px}
+</style>
+</head>
+<body>
+  <form class="card" id="lf">
+    <div class="brand">
+      <img src="/axis-up-logo.png" alt="Axis Up">
+      <h1>Axis<span>Up</span></h1>
+    </div>
+    <div class="sub">سجّل دخولك للمتابعة</div>
+    <div class="err" id="err"></div>
+    <input id="em" type="email" placeholder="البريد الإلكتروني" required autocomplete="username">
+    <input id="pw" type="password" placeholder="كلمة المرور" required autocomplete="current-password">
+    <button type="submit" id="go">دخول</button>
+    <div class="hint">WoodNet · منصة موحدة</div>
+  </form>
+<script>
+  const f = document.getElementById('lf');
+  const e = document.getElementById('err');
+  const b = document.getElementById('go');
+  f.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    e.classList.remove('show');
+    b.disabled = true;
+    b.textContent = '...';
+    try {
+      const r = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: document.getElementById('em').value.trim(), password: document.getElementById('pw').value })
+      });
+      const d = await r.json();
+      if (!r.ok || !d.token) throw new Error(d.message || 'فشل الدخول');
+      localStorage.setItem('token', d.token);
+      location.reload();
+    } catch (err) {
+      e.textContent = err.message || 'خطأ غير معروف';
+      e.classList.add('show');
+      b.disabled = false;
+      b.textContent = 'دخول';
+    }
+  });
+<\/script>
+</body>
+</html>`;
+}
