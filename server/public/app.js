@@ -29,7 +29,7 @@ async function boot() {
   if (!tk.g()) return renderAuth('login');
   try {
     const { user } = await api('/api/auth/me');
-    me = user;
+    me = user; location.href = '/'; return;
     $('#nav').classList.remove('hidden');
     $('#page-auth').classList.add('hidden');
     $('#who').textContent = '@' + user.username + ' · ' + user.role;
@@ -59,7 +59,7 @@ function renderAuth(mode) {
       const r = isL
         ? await api('/api/auth/login', { method: 'POST', body: { email, password } })
         : await api('/api/auth/register', { method: 'POST', body: { email, password, username: $('#f-user').value.trim(), fullName: $('#f-name').value.trim() } });
-      tk.s(r.token); boot();
+      tk.s(r.token); location.href = '/';
     } catch (e) { er.textContent = e.message; er.classList.remove('hidden'); }
   });
 }
