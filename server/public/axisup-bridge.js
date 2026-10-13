@@ -197,75 +197,69 @@
   }
 })();
 
-// ===== شاشة الدخول المدمجة =====
+
+/* ===== شاشة الدخول — بلا innerHTML scripts ===== */
 function showLogin() {
-  document.documentElement.innerHTML = `
-<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Axis Up · دخول</title>
-<script src="https://cdn.tailwindcss.com"><\/script>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-<style>
-  body{margin:0;font-family:Cairo,system-ui,sans-serif;background:linear-gradient(135deg,#0A1A24 0%,#0F2634 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;color:#E6EDF5}
-  .card{background:#132836;border:1px solid #263341;border-radius:20px;padding:32px 24px;width:100%;max-width:380px;box-shadow:0 20px 60px -20px rgba(0,176,116,.4)}
-  .brand{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px}
-  .brand img{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:14px;padding:6px}
-  .brand h1{font-size:24px;font-weight:900;margin:0}
-  .brand span{color:#00B074}
-  .sub{text-align:center;color:#8b98a8;font-size:13px;margin-bottom:24px}
-  input{width:100%;padding:12px 14px;background:#0F2634;border:1px solid #263341;border-radius:12px;color:#E6EDF5;font-size:14px;margin:6px 0;outline:none;box-sizing:border-box;font-family:inherit}
-  input:focus{border-color:#00B074;box-shadow:0 0 0 3px rgba(0,176,116,.15)}
-  button{width:100%;padding:12px;background:#00B074;color:#fff;border:none;border-radius:12px;font-weight:800;font-size:15px;margin-top:12px;cursor:pointer;font-family:inherit;transition:.15s}
-  button:hover{background:#009663}
-  button:disabled{opacity:.5;cursor:wait}
-  .err{background:#4a1f24;color:#ffb4b4;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px;display:none}
-  .err.show{display:block}
-  .hint{text-align:center;color:#8b98a8;font-size:11px;margin-top:20px}
-</style>
-</head>
-<body>
-  <form class="card" id="lf">
-    <div class="brand">
-      <img src="/axis-up-logo.png" alt="Axis Up">
-      <h1>Axis<span>Up</span></h1>
-    </div>
-    <div class="sub">سجّل دخولك للمتابعة</div>
-    <div class="err" id="err"></div>
-    <input id="em" type="email" placeholder="البريد الإلكتروني" required autocomplete="username">
-    <input id="pw" type="password" placeholder="كلمة المرور" required autocomplete="current-password">
-    <button type="submit" id="go">دخول</button>
-    <div class="hint">WoodNet · منصة موحدة</div>
-  </form>
-<script>
-  const f = document.getElementById('lf');
-  const e = document.getElementById('err');
-  const b = document.getElementById('go');
-  f.addEventListener('submit', async (ev) => {
+  document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#0A1A24 0%,#0F2634 100%);font-family:Cairo,system-ui,sans-serif"><form id="axisup-login" style="background:#132836;border:1px solid #263341;border-radius:20px;padding:32px 24px;width:100%;max-width:380px;box-shadow:0 20px 60px -20px rgba(0,176,116,.4)"><div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px"><img src="/axis-up-logo.png" alt="Axis Up" style="width:52px;height:52px;object-fit:contain;background:#fff;border-radius:14px;padding:6px"><h1 style="font-size:24px;font-weight:900;margin:0;color:#E6EDF5">Axis<span style="color:#00B074">Up</span></h1></div><div style="text-align:center;color:#8b98a8;font-size:13px;margin-bottom:24px">سجّل دخولك للمتابعة</div><div id="axisup-err" style="display:none;background:#4a1f24;color:#ffb4b4;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px"></div><input id="axisup-em" type="email" placeholder="البريد الإلكتروني" required autocomplete="username" style="width:100%;padding:12px 14px;background:#0F2634;border:1px solid #263341;border-radius:12px;color:#E6EDF5;font-size:14px;margin:6px 0;outline:none;box-sizing:border-box;font-family:inherit"><input id="axisup-pw" type="password" placeholder="كلمة المرور" required autocomplete="current-password" style="width:100%;padding:12px 14px;background:#0F2634;border:1px solid #263341;border-radius:12px;color:#E6EDF5;font-size:14px;margin:6px 0;outline:none;box-sizing:border-box;font-family:inherit"><button id="axisup-go" type="submit" style="width:100%;padding:12px;background:#00B074;color:#fff;border:none;border-radius:12px;font-weight:800;font-size:15px;margin-top:12px;cursor:pointer;font-family:inherit">دخول</button><div style="text-align:center;color:#8b98a8;font-size:11px;margin-top:20px">Axis Up · منصة موحدة</div></form></div>';
+
+  document.getElementById('axisup-login').addEventListener('submit', async (ev) => {
     ev.preventDefault();
-    e.classList.remove('show');
-    b.disabled = true;
-    b.textContent = '...';
+    const err = document.getElementById('axisup-err');
+    const btn = document.getElementById('axisup-go');
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = '...';
     try {
       const r = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: document.getElementById('em').value.trim(), password: document.getElementById('pw').value })
+        body: JSON.stringify({
+          email: document.getElementById('axisup-em').value.trim(),
+          password: document.getElementById('axisup-pw').value,
+        }),
       });
       const d = await r.json();
       if (!r.ok || !d.token) throw new Error(d.message || 'فشل الدخول');
       localStorage.setItem('token', d.token);
       location.reload();
-    } catch (err) {
-      e.textContent = err.message || 'خطأ غير معروف';
-      e.classList.add('show');
-      b.disabled = false;
-      b.textContent = 'دخول';
+    } catch (e) {
+      err.textContent = e.message || 'خطأ';
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'دخول';
     }
   });
-<\/script>
-</body>
-</html>`;
+}
+
+/* ===== شاشة الدخول — بلا innerHTML scripts ===== */
+function showLogin() {
+  document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#0A1A24 0%,#0F2634 100%);font-family:Cairo,system-ui,sans-serif"><form id="axisup-login" style="background:#132836;border:1px solid #263341;border-radius:20px;padding:32px 24px;width:100%;max-width:380px;box-shadow:0 20px 60px -20px rgba(0,176,116,.4)"><div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px"><img src="/axis-up-logo.png" alt="Axis Up" style="width:52px;height:52px;object-fit:contain;background:#fff;border-radius:14px;padding:6px"><h1 style="font-size:24px;font-weight:900;margin:0;color:#E6EDF5">Axis<span style="color:#00B074">Up</span></h1></div><div style="text-align:center;color:#8b98a8;font-size:13px;margin-bottom:24px">سجّل دخولك للمتابعة</div><div id="axisup-err" style="display:none;background:#4a1f24;color:#ffb4b4;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px"></div><input id="axisup-em" type="email" placeholder="البريد الإلكتروني" required autocomplete="username" style="width:100%;padding:12px 14px;background:#0F2634;border:1px solid #263341;border-radius:12px;color:#E6EDF5;font-size:14px;margin:6px 0;outline:none;box-sizing:border-box;font-family:inherit"><input id="axisup-pw" type="password" placeholder="كلمة المرور" required autocomplete="current-password" style="width:100%;padding:12px 14px;background:#0F2634;border:1px solid #263341;border-radius:12px;color:#E6EDF5;font-size:14px;margin:6px 0;outline:none;box-sizing:border-box;font-family:inherit"><button id="axisup-go" type="submit" style="width:100%;padding:12px;background:#00B074;color:#fff;border:none;border-radius:12px;font-weight:800;font-size:15px;margin-top:12px;cursor:pointer;font-family:inherit">دخول</button><div style="text-align:center;color:#8b98a8;font-size:11px;margin-top:20px">Axis Up · منصة موحدة</div></form></div>';
+
+  document.getElementById('axisup-login').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const err = document.getElementById('axisup-err');
+    const btn = document.getElementById('axisup-go');
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+      const r = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('axisup-em').value.trim(),
+          password: document.getElementById('axisup-pw').value,
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok || !d.token) throw new Error(d.message || 'فشل الدخول');
+      localStorage.setItem('token', d.token);
+      location.reload();
+    } catch (e) {
+      err.textContent = e.message || 'خطأ';
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'دخول';
+    }
+  });
 }
